@@ -3,79 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>tinyscam — swipe to learn</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <title>tinyscam — pick your bag</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --snap-yellow: #FFFC00; }
-        body, html { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; font-family: 'Inter', sans-serif; }
+        :root { --snap-yellow: #FFFC00; --bg: #fafafa; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); padding: 20px; }
+
+        .header { padding: 20px 0 40px; text-align: center; }
+        .brand { font-weight: 900; font-size: 24px; letter-spacing: -1px; }
+        .brand span { background: var(--snap-yellow); padding: 4px 10px; border-radius: 8px; }
+
+        /* Gallery Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .card {
+            aspect-ratio: 9/16;
+            background: #000;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: flex-end;
+            padding: 15px;
+            border: none;
+        }
+        .card:active { transform: scale(0.95); }
+        .card-title { color: white; font-weight: 900; font-size: 18px; line-height: 1; z-index: 2; text-align: left; }
+        .card-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.8)); z-index: 1; }
         
-        .swiper { width: 100%; height: 100%; }
-        .swiper-slide { 
-            display: flex; justify-content: center; align-items: center; 
-            background: #000; overflow: hidden;
+        /* Game Overlay (Slide Up) */
+        #game-viewer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: white;
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+        }
+        #game-viewer.active { transform: translateY(0); }
+
+        .close-btn {
+            position: absolute; top: 20px; right: 20px;
+            width: 40px; height: 40px; background: rgba(0,0,0,0.1);
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-weight: bold; cursor: pointer; z-index: 1100;
         }
 
-        /* The Game Container */
-        .game-wrapper {
-            width: 100%; height: 100%; max-width: 450px;
-            background: white; position: relative;
-            /* We simulate the phone look here */
-            overflow-y: auto;
-        }
-
-        .swipe-hint {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            color: white; z-index: 100; font-size: 10px; font-weight: bold;
-            letter-spacing: 1px; opacity: 0.8; pointer-events: none;
-        }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
-    <div class="swipe-hint">↑ SWIPE FOR NEXT SCAM</div>
-
-    <div class="swiper mySwiper">
-        <div class="swiper-wrapper" id="main-wrapper">
-            </div>
+    <div class="header">
+        <div class="brand">tiny<span>scam</span></div>
+        <p style="color: #888; margin-top: 10px; font-weight: 600;">Pick a hustle. Don't get taxed.</p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <div class="grid">
+        <button class="card" style="background: #00B9FF;" onclick="openGame('games/get-the-bag.html')">
+            <div class="card-overlay"></div>
+            <div class="card-title">GET THE<br>BAG 💸</div>
+        </button>
+
+        <button class="card" style="background: #FF4B4B;" onclick="openGame('games/security-alert.html')">
+            <div class="card-overlay"></div>
+            <div class="card-title">SECURITY<br>BREACH 🚨</div>
+        </button>
+
+        <button class="card" style="background: #1A73E8;" onclick="openGame('games/wire-fraud.html')">
+            <div class="card-overlay"></div>
+            <div class="card-title">CLOSING<br>DAY 🏠</div>
+        </button>
+
+        <button class="card" style="background: #eee;" disabled>
+            <div class="card-title" style="color: #ccc;">COMING<br>SOON 🔒</div>
+        </button>
+    </div>
+
+    <div id="game-viewer">
+        <div class="close-btn" onclick="closeGame()">✕</div>
+        <iframe id="game-frame" src=""></iframe>
+    </div>
+
     <script>
-        // List your game files here
-        const gameFiles = [
-            'games/get-the-bag.html',
-            'games/security-alert.html'
-        ];
+        const viewer = document.getElementById('game-viewer');
+        const frame = document.getElementById('game-frame');
 
-        async function loadGames() {
-            const wrapper = document.getElementById('main-wrapper');
-            
-            for (const file of gameFiles) {
-                try {
-                    const response = await fetch(file);
-                    const html = await response.text();
-                    
-                    // Create a slide
-                    const slide = document.createElement('div');
-                    slide.className = 'swiper-slide';
-                    
-                    // Inject the game HTML into the slide
-                    slide.innerHTML = `<div class="game-wrapper">${html}</div>`;
-                    wrapper.appendChild(slide);
-                } catch (err) {
-                    console.error("Failed to load game:", file, err);
-                }
-            }
-
-            // Initialize Swiper AFTER games are loaded
-            new Swiper(".mySwiper", {
-                direction: "vertical",
-                mousewheel: true,
-                threshold: 10
-            });
+        function openGame(url) {
+            frame.src = url;
+            viewer.classList.add('active');
         }
 
-        loadGames();
+        function closeGame() {
+            viewer.classList.remove('active');
+            setTimeout(() => { frame.src = ""; }, 400); // Clear src after animation
+        }
     </script>
 </body>
 </html>
