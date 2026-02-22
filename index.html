@@ -6,90 +6,76 @@
     <title>tinyscam — swipe to learn</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; }
-        .swiper { width: 100%; height: 100%; }
+        :root { --snap-yellow: #FFFC00; }
+        body, html { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; font-family: 'Inter', sans-serif; }
         
-        .swiper-slide {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative; /* Needed for the overlay */
+        .swiper { width: 100%; height: 100%; }
+        .swiper-slide { 
+            display: flex; justify-content: center; align-items: center; 
+            background: #000; overflow: hidden;
         }
 
-        /* The Game Iframe */
-        iframe {
-            width: 90%;
-            height: 85%;
-            border: none;
-            max-width: 400px;
-            border-radius: 24px;
-            background: white;
-            /* Prevent iframe from eating touches initially */
-            pointer-events: auto; 
+        /* The Game Container */
+        .game-wrapper {
+            width: 100%; height: 100%; max-width: 450px;
+            background: white; position: relative;
+            /* We simulate the phone look here */
+            overflow-y: auto;
         }
 
-        /* THE FIX: Invisible layer that lets the parent see swipes */
-        .touch-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 5;
-            background: transparent;
-        }
-
-        /* Swipe Hint */
-        .hint {
+        .swipe-hint {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            color: white; font-family: sans-serif; font-size: 12px; font-weight: bold;
-            z-index: 10; opacity: 0.6; pointer-events: none; text-align: center;
+            color: white; z-index: 100; font-size: 10px; font-weight: bold;
+            letter-spacing: 1px; opacity: 0.8; pointer-events: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="hint" id="hint">↑ SWIPE UP FOR NEXT SCAM</div>
+    <div class="swipe-hint">↑ SWIPE FOR NEXT SCAM</div>
 
     <div class="swiper mySwiper">
-        <div class="swiper-wrapper">
-            <div class="swiper-slide">
-                <div class="touch-layer"></div>
-                <iframe src="games/get-the-bag.html"></iframe>
+        <div class="swiper-wrapper" id="main-wrapper">
             </div>
-            <div class="swiper-slide">
-                <div class="touch-layer"></div>
-                <iframe src="games/security-alert.html"></iframe>
-            </div>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script>
-        const swiper = new Swiper(".mySwiper", {
-            direction: "vertical",
-            mousewheel: true,
-            threshold: 20, // Sensitive enough to trigger easily
-        });
+        // List your game files here
+        const gameFiles = [
+            'games/get-the-bag.html',
+            'games/security-alert.html'
+        ];
 
-        // Toggle pointer events so users can click buttons INSIDE the game 
-        // but still swipe to the next slide.
-        swiper.on('slideChange', () => {
-            document.getElementById('hint').style.display = 'none';
-        });
+        async function loadGames() {
+            const wrapper = document.getElementById('main-wrapper');
+            
+            for (const file of gameFiles) {
+                try {
+                    const response = await fetch(file);
+                    const html = await response.text();
+                    
+                    // Create a slide
+                    const slide = document.createElement('div');
+                    slide.className = 'swiper-slide';
+                    
+                    // Inject the game HTML into the slide
+                    slide.innerHTML = `<div class="game-wrapper">${html}</div>`;
+                    wrapper.appendChild(slide);
+                } catch (err) {
+                    console.error("Failed to load game:", file, err);
+                }
+            }
 
-        /* Crucial Logic: 
-           If the user just taps, we want the IFRAME to get the click.
-           If the user drags, we want the SWIPER to get the move.
-        */
-        const layers = document.querySelectorAll('.touch-layer');
-        layers.forEach(layer => {
-            layer.addEventListener('click', (e) => {
-                // If they just click, hide the layer for 1 second 
-                // so they can interact with the game buttons
-                layer.style.pointerEvents = 'none';
-                setTimeout(() => {
-                    layer.style.pointerEvents = 'auto';
-                }, 1000);
+            // Initialize Swiper AFTER games are loaded
+            new Swiper(".mySwiper", {
+                direction: "vertical",
+                mousewheel: true,
+                threshold: 10
             });
-        });
+        }
+
+        loadGames();
     </script>
 </body>
 </html>
