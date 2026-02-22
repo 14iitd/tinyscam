@@ -3,121 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>tinyscam — select your hustle</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>tinyscam — reality check</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
-        :root { --snap-yellow: #FFFC00; --bg: #ffffff; --card-radius: 24px; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --text: #16191C;
+            --muted: #8E8E93;
+            --accent: #FFFC00;
+            --snap-blue: #00B9FF;
+            --snap-pink: #FF0045;
+            --sheet-bg: #ffffff;
+            --go: #00D166;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         
-        body { background: var(--bg); color: #000; padding-bottom: 50px; }
-
-        /* Branding Header */
-        .header { padding: 60px 25px 30px; }
-        .brand { font-weight: 900; font-size: 28px; letter-spacing: -1.5px; }
-        .brand span { background: var(--snap-yellow); padding: 2px 8px; border-radius: 8px; margin-left: 2px; }
-        .subtitle { color: #8E8E93; font-size: 16px; font-weight: 600; margin-top: 5px; }
-
-        /* Discovery Grid */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            padding: 0 20px;
-            max-width: 500px;
-            margin: 0 auto;
+        body { 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; background: #fff; overflow: hidden; color: var(--text); 
         }
 
-        .card {
-            aspect-ratio: 9/15;
-            border-radius: var(--card-radius);
-            position: relative;
-            overflow: hidden;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: flex-end;
-            padding: 15px;
-            transition: transform 0.1s ease;
-        }
-        .card:active { transform: scale(0.96); }
-        
-        .card-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.7));
-        }
+        .container { width: 100%; max-width: 380px; padding: 24px; text-align: center; position: relative; }
 
-        .card-label {
-            position: relative; z-index: 2;
-            color: white; font-weight: 900; font-size: 15px;
-            text-align: left; line-height: 1.1; text-transform: uppercase;
-        }
+        /* Brand */
+        .brand { font-weight: 900; font-size: 22px; margin-bottom: 40px; letter-spacing: -0.5px; }
+        .brand span { background: var(--accent); padding: 4px 10px; border-radius: 8px; margin-left: 2px; }
 
-        /* Fullscreen Game Viewer */
-        #viewer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 1000;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; flex-direction: column;
-        }
-        #viewer.active { transform: translateY(0); }
+        /* Typography */
+        h1 { font-size: 54px; line-height: 0.9; margin-bottom: 20px; letter-spacing: -2.5px; font-weight: 900; }
+        .tagline { color: var(--muted); margin-bottom: 40px; font-size: 18px; line-height: 1.4; font-weight: 500; }
 
-        .close-area {
-            position: absolute; top: 40px; right: 20px;
-            width: 36px; height: 36px; background: rgba(0,0,0,0.1);
-            border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-weight: bold; cursor: pointer; z-index: 1001;
+        /* Buttons */
+        button { 
+            width: 100%; padding: 22px; border: none; border-radius: 24px; 
+            font-weight: 800; cursor: pointer; margin-bottom: 12px; font-size: 18px; 
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
+        button:active { transform: scale(0.95); }
+        .primary { background: black; color: white; }
+        .secondary { background: #f2f2f2; color: var(--text); }
+        .pink-btn { background: var(--snap-pink); color: white; }
 
-        iframe { width: 100%; height: 100%; border: none; }
+        /* Bottom Sheet Overlay */
+        .overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.4); display: none; flex-direction: column; 
+            justify-content: flex-end; z-index: 100; backdrop-filter: blur(4px); 
+        }
+        .sheet { 
+            background: var(--sheet-bg); width: 100%; height: 60%; 
+            border-radius: 40px 40px 0 0; padding: 40px 30px; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.1); 
+            animation: slideUp 0.5s cubic-bezier(0, 0.55, 0.45, 1);
+            display: flex; flex-direction: column; text-align: center;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .sheet-h1 { font-size: 38px; font-weight: 900; margin-bottom: 15px; letter-spacing: -1.5px; }
+        .sheet-p { color: var(--muted); font-size: 18px; line-height: 1.4; margin-bottom: 30px; }
+        .close-link { margin-top: auto; color: #bbb; font-weight: 700; text-decoration: none; font-size: 14px; cursor: pointer; padding-bottom: 10px; }
+
+        /* Live Notification */
+        #live-feed {
+            position: fixed; top: 20px; background: white; padding: 12px 20px;
+            border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            font-size: 13px; font-weight: 700; z-index: 50; display: flex;
+            align-items: center; gap: 10px; opacity: 0; transition: 0.5s;
+            left: 50%; transform: translateX(-50%); width: max-content;
+        }
+        #live-feed.show { opacity: 1; top: 30px; }
+        .dot { height: 8px; width: 8px; background: var(--snap-pink); border-radius: 50%; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.3; } }
+
+        /* Heart CTA */
+        .heart-emoji { font-size: 40px; margin-bottom: 10px; animation: pulse 1.5s infinite; cursor: pointer; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="brand">tiny<span>scam</span></div>
-        <div class="subtitle">Don't get caught lacking.</div>
+<div id="live-feed"><div class="dot"></div> <span id="feed-text">Someone just lost $2,000</span></div>
+
+<div class="container">
+    <div class="brand">tiny<span>scam</span></div>
+    <h1>choose your<br>truth. 🧠</h1>
+    <div class="tagline">
+        The internet is a wild place.<br>
+        Are you the predator or the prey?
     </div>
+    <button class="primary" onclick="openSheet('p2')">I'VE BEEN SCAMMED</button>
+    <button class="secondary" onclick="openSheet('p3')">I'M TOO SMART</button>
+</div>
 
-    <div class="grid">
-        <button class="card" style="background: #00B9FF;" onclick="play('games/get-the-bag.html')">
-            <div class="card-overlay"></div>
-            <div class="card-label">The "Free"<br>Reward</div>
-        </button>
+<div class="overlay" id="overlay">
+    <div class="sheet" id="sheet-content">
+        </div>
+</div>
 
-        <button class="card" style="background: #FF4B4B;" onclick="play('games/security-hijack.html')">
-            <div class="card-overlay"></div>
-            <div class="card-label">Account<br>Hijack</div>
-        </button>
+<script>
+    const overlay = document.getElementById('overlay');
+    const sheet = document.getElementById('sheet-content');
+    const feed = document.getElementById('live-feed');
+    const feedText = document.getElementById('feed-text');
 
-        <button class="card" style="background: #16191C;" onclick="play('games/wire-transfer.html')">
-            <div class="card-overlay"></div>
-            <div class="card-label">The Wire<br>Trap</div>
-        </button>
+  const alerts = [
+        "NY Doctor lost $1.8M to 'Digital Arrest' video scam",
+        "CEO in London defrauded by Deepfake 'AI Voice' of Director",
+        "Retiree lost $120k in 'Gold Bar' safeguarding trap",
+        "New 'Pig Butchering' crypto scam reported in Singapore",
+        "Student lost tuition fees to 'Remote Job' Telegram fraud",
+        "Homeowner scammed by fake 'Unpaid Utility' urgent SMS",
+        "Grandmother lost $40k to 'Grandchild in Jail' AI voice clone",
+        "User paid $800 'Customs Fee' for a fake romantic gift",
+        "Pensioner scammed out of $250k via 'FedEx Drug Bust' call",
+        "New 'Screen Sharing' tech support fraud hit Sydney",
+        "Investor lost $1M to fake 'Pre-IPO' stock market tips",
+        "Traveler drained bank account on fake 'Airline Refund' site",
+        "Elderly woman kept on 24hr video 'custody' for 10 days",
+        "Identity theft reported via 'Tax Refund' phishing link",
+        "Crypto whale lost $2M in 'SIM Swap' takeover",
+        "Company lost $4M to 'Business Email Compromise' (BEC)",
+        "Dating app user scammed of $150k in 'Romance' fraud",
+        "Renter scammed by 'Fake Listing' security deposit in Berlin",
+        "Expat lost $60k to 'Visa Verification' phone scam",
+        "Shopper scammed by 'Amazon Account Lock' phishing alert"
+    ];
 
-        <button class="card" style="background: #F2F2F2;" disabled>
-            <div class="card-label" style="color: #ccc;">Locked<br>Level</div>
-        </button>
-    </div>
+    function showNotification() {
+        // Randomly pick an alert from the global list
+        feedText.innerText = alerts[Math.floor(Math.random() * alerts.length)];
+        feed.classList.add('show');
+        
+        // Hold for 3.5 seconds then hide
+        setTimeout(() => feed.classList.remove('show'), 3500);
+    }
+    
+    // Cycle every 7 seconds to keep the FOMO/Pressure alive
+    setInterval(showNotification, 4000);
 
-    <div id="viewer">
-        <div class="close-area" onclick="stop()">✕</div>
-        <iframe id="game-frame" src=""></iframe>
-    </div>
-
-    <script>
-        const v = document.getElementById('viewer');
-        const f = document.getElementById('game-frame');
-
-        function play(path) {
-            f.src = path;
-            v.classList.add('active');
+    function openSheet(type) {
+        overlay.style.display = "flex";
+        if (type === 'p2') {
+            sheet.innerHTML = `
+                <h1 class="sheet-h1" style="color:var(--snap-blue)">RELAX.</h1>
+                <p class="sheet-p">It's not your fault. These guys are professionals who hack your heart, not just your phone.</p>
+                <button class="primary" onclick="closeSheet()">I'm staying alert</button>
+                <a class="close-link" onclick="closeSheet()">Dismiss</a>
+            `;
+        } else if (type === 'p3') {
+            sheet.innerHTML = `
+                <h1 class="sheet-h1">WILD.</h1>
+                <p class="sheet-p">Confidence is exactly what a scammer looks for. Want to test your luck right now?</p>
+                <button class="pink-btn" onclick="openSheet('p4')">SCAM ME NOW</button>
+                <a class="close-link" onclick="closeSheet()">I'm actually scared</a>
+            `;
+        } else if (type === 'p4') {
+            sheet.innerHTML = `
+                <div class="heart-emoji" onclick="window.open('https://buymeacoffee.com/notstupidtax', '_blank')">❤️</div>
+                <h1 class="sheet-h1" style="color:var(--snap-pink)">OOPS.</h1>
+                <p class="sheet-p">You just clicked "Yes" to a stranger on a screen. In the real world, that's where your money vanishes.</p>
+                <button class="primary" onclick="window.open('https://buymeacoffee.com/notstupidtax', '_blank')">Pay the Stupid Tax</button>
+                <a class="close-link" onclick="closeSheet()">Restart Life</a>
+            `;
         }
+    }
 
-        function stop() {
-            v.classList.remove('active');
-            setTimeout(() => { f.src = ""; }, 400);
-        }
-    </script>
+    function closeSheet() {
+        overlay.style.display = "none";
+    }
+</script>
+
 </body>
 </html>
