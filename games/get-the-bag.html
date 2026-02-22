@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>tinyscam — get your bag</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --text: #16191C;
+            --muted: #8E8E93;
+            --accent: #FFFC00;
+            --go: #00D166;
+            --snap-blue: #00B9FF;
+            --sheet-bg: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        
+        body { 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; background: #fff; overflow: hidden; color: var(--text); 
+        }
+
+        .container { width: 100%; max-width: 380px; padding: 24px; text-align: center; position: relative; }
+
+        /* Brand */
+        .brand { font-weight: 900; font-size: 22px; margin-bottom: 40px; letter-spacing: -0.5px; }
+        .brand span { background: var(--accent); padding: 4px 10px; border-radius: 8px; margin-left: 2px; }
+
+        /* Typography */
+        h1 { font-size: 54px; line-height: 0.9; margin-bottom: 20px; letter-spacing: -2.5px; font-weight: 900; }
+        .tagline { color: var(--muted); margin-bottom: 40px; font-size: 18px; line-height: 1.4; font-weight: 500; }
+
+        /* Buttons */
+        button { 
+            width: 100%; padding: 22px; border: none; border-radius: 24px; 
+            font-weight: 800; cursor: pointer; margin-bottom: 12px; font-size: 18px; 
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        button:active { transform: scale(0.95); }
+        .primary { background: black; color: white; }
+        .secondary { background: transparent; color: var(--muted); font-size: 15px; }
+
+        /* Bottom Sheet (60% Height) */
+        .overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.4); display: none; flex-direction: column; 
+            justify-content: flex-end; z-index: 100; backdrop-filter: blur(4px); 
+        }
+        .sheet { 
+            background: var(--sheet-bg); width: 100%; height: 65%; 
+            border-radius: 40px 40px 0 0; padding: 40px 30px; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.1); 
+            animation: slideUp 0.5s cubic-bezier(0, 0.55, 0.45, 1);
+            display: flex; flex-direction: column; text-align: center;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .balance { font-size: 68px; font-weight: 900; margin: 20px 0; color: var(--go); letter-spacing: -3px; }
+        .lesson-title { font-size: 30px; font-weight: 900; margin-bottom: 15px; line-height: 1.1; letter-spacing: -1px; }
+        .close-link { margin-top: auto; color: #bbb; font-weight: 700; text-decoration: none; font-size: 14px; cursor: pointer; padding-bottom: 10px; }
+
+        /* Live Notification */
+        #live-feed {
+            position: fixed; top: 20px; background: white; padding: 12px 20px;
+            border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            font-size: 13px; font-weight: 700; z-index: 50; display: flex;
+            align-items: center; gap: 10px; opacity: 0; transition: 0.5s;
+            left: 50%; transform: translateX(-50%); width: max-content;
+        }
+        #live-feed.show { opacity: 1; top: 30px; }
+        .dot { height: 8px; width: 8px; background: var(--go); border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+<div id="live-feed"><div class="dot"></div> <span id="feed-text">Someone just got $450</span></div>
+
+<div class="container">
+    <div class="brand">tiny<span>scam</span></div>
+    <h1>get your<br>bag. 💸</h1>
+    <div class="tagline">
+        The internet owes you money.<br>
+        Claim your uncollected rewards.
+    </div>
+    <button class="primary" onclick="startScam()">Claim My $400</button>
+    <button class="secondary" onclick="showGuide()">How does this work?</button>
+</div>
+
+<div class="overlay" id="overlay">
+    <div class="sheet">
+        <div id="content"></div>
+        <a class="close-link" onclick="closeOverlay()">Close</a>
+    </div>
+</div>
+
+<script>
+    let balance = 0;
+    const overlay = document.getElementById('overlay');
+    const content = document.getElementById('content');
+    const feed = document.getElementById('live-feed');
+    const feedText = document.getElementById('feed-text');
+
+    const names = ["Alex", "Satoshi", "Jordan", "Taylor", "Casey", "Morgan", "Riley"];
+
+    function showNotification() {
+        const name = names[Math.floor(Math.random() * names.length)];
+        const amount = Math.floor(Math.random() * 300 + 200);
+        feedText.innerText = `${name} just withdrew $${amount}`;
+        feed.classList.add('show');
+        setTimeout(() => feed.classList.remove('show'), 3000);
+    }
+    setInterval(showNotification, 6000);
+
+    function openOverlay(){ overlay.style.display="flex" }
+    function closeOverlay(){ overlay.style.display="none" }
+
+    function startScam(){
+        openOverlay();
+        content.innerHTML=`
+            <h2 class="lesson-title">Finding rewards...</h2>
+            <p style="color:#666">Connecting to secure payout servers.</p>
+            <div class="balance" id="balance">$0</div>
+            <button class="primary" onclick="increaseBalance()">Tap to Speed Up</button>
+        `;
+    }
+
+    function increaseBalance(){
+        balance += Math.floor(Math.random()*90+50);
+        document.getElementById("balance").innerText="$"+balance;
+        if(balance > 550){ showPayment(); }
+    }
+
+    function showPayment(){
+        content.innerHTML=`
+            <h2 class="lesson-title">Ready to Send!</h2>
+            <div class="balance">$${balance}</div>
+            <p style="color:#666">To withdraw, please pay a one-time <b>$5 server verification fee</b>.</p>
+            <br>
+            <button class="primary" style="background:var(--go)" onclick="showLesson()">Pay $5 & Get $${balance}</button>
+        `;
+    }
+
+    function showLesson(){
+        content.innerHTML=`
+            <div class="lesson-title">Caught You.</div>
+            <p style="color:#444">Real scammers use the "Fee to Receive" trick. You'd think: "It's only $5 to get $${balance}."</p>
+            <br>
+            <p style="font-weight:700">That $5 is the scam. Once you pay, they vanish.</p>
+            <br>
+            <button class="primary" onclick="reset()">I'm smarter now</button>
+        `;
+    }
+
+    function showGuide(){
+        openOverlay();
+        content.innerHTML=`
+            <h2 class="lesson-title">The "Fee" Scam</h2>
+            <p style="color:#666">If you have to pay money to receive money... it is 100% a scam.</p>
+            <br>
+            <p style="color:#666; font-weight:600">Don't pay the Stupid Tax.</p>
+        `;
+    }
+
+    function reset(){
+        balance = 0;
+        closeOverlay();
+    }
+</script>
+
+</body>
+</html>
