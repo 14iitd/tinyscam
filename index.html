@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>tinyscam — pick your bag</title>
+    <title>tinyscam — dynamic library</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --snap-yellow: #FFFC00; --bg: #fafafa; }
@@ -25,7 +25,7 @@
 
         .card {
             aspect-ratio: 9/16;
-            background: #000;
+            background: #222;
             border-radius: 20px;
             position: relative;
             overflow: hidden;
@@ -35,31 +35,27 @@
             align-items: flex-end;
             padding: 15px;
             border: none;
+            text-decoration: none;
         }
         .card:active { transform: scale(0.95); }
-        .card-title { color: white; font-weight: 900; font-size: 18px; line-height: 1; z-index: 2; text-align: left; }
-        .card-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.8)); z-index: 1; }
+        .card-title { color: white; font-weight: 900; font-size: 16px; line-height: 1.2; z-index: 2; text-align: left; text-transform: uppercase; }
+        .card-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.8)); z-index: 1; }
         
-        /* Game Overlay (Slide Up) */
+        /* Loading Spinner */
+        #loader { text-align: center; font-weight: 700; color: #888; padding: 20px; }
+
+        /* Game Viewer */
         #game-viewer {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: white;
-            z-index: 1000;
-            transform: translateY(100%);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 1000; transform: translateY(100%);
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            flex-direction: column;
         }
         #game-viewer.active { transform: translateY(0); }
-
         .close-btn {
-            position: absolute; top: 20px; right: 20px;
-            width: 40px; height: 40px; background: rgba(0,0,0,0.1);
-            border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-weight: bold; cursor: pointer; z-index: 1100;
+            position: absolute; top: 20px; right: 20px; width: 40px; height: 40px;
+            background: rgba(0,0,0,0.1); border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-weight: bold; cursor: pointer; z-index: 1100;
         }
-
         iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
@@ -67,29 +63,11 @@
 
     <div class="header">
         <div class="brand">tiny<span>scam</span></div>
-        <p style="color: #888; margin-top: 10px; font-weight: 600;">Pick a hustle. Don't get taxed.</p>
+        <p style="color: #888; margin-top: 10px; font-weight: 600;">Latest hustles, updated live.</p>
     </div>
 
-    <div class="grid">
-        <button class="card" style="background: #00B9FF;" onclick="openGame('games/get-the-bag.html')">
-            <div class="card-overlay"></div>
-            <div class="card-title">GET THE<br>BAG 💸</div>
-        </button>
-
-        <button class="card" style="background: #FF4B4B;" onclick="openGame('games/security-alert.html')">
-            <div class="card-overlay"></div>
-            <div class="card-title">SECURITY<br>BREACH 🚨</div>
-        </button>
-
-        <button class="card" style="background: #1A73E8;" onclick="openGame('games/wire-fraud.html')">
-            <div class="card-overlay"></div>
-            <div class="card-title">CLOSING<br>DAY 🏠</div>
-        </button>
-
-        <button class="card" style="background: #eee;" disabled>
-            <div class="card-title" style="color: #ccc;">COMING<br>SOON 🔒</div>
-        </button>
-    </div>
+    <div id="loader">Fetching games...</div>
+    <div class="grid" id="game-grid"></div>
 
     <div id="game-viewer">
         <div class="close-btn" onclick="closeGame()">✕</div>
@@ -97,18 +75,62 @@
     </div>
 
     <script>
+        // CONFIGURATION: Change these to your GitHub details
+        const USERNAME = 'your-github-username';
+        const REPO_NAME = 'your-repo-name';
+        const FOLDER_PATH = 'games';
+
+        const grid = document.getElementById('game-grid');
+        const loader = document.getElementById('loader');
         const viewer = document.getElementById('game-viewer');
         const frame = document.getElementById('game-frame');
 
-        function openGame(url) {
-            frame.src = url;
+        // Colors for the cards to keep it flashy
+        const colors = ['#00B9FF', '#FF4B4B', '#FFFC00', '#00D166', '#AF52DE', '#FF9500'];
+
+        async function fetchGames() {
+            try {
+                const response = await fetch(`https://api.github.com/repos/${USERNAME}/${REPO_NAME}/contents/${FOLDER_PATH}`);
+                const files = await response.json();
+
+                loader.style.display = 'none';
+
+                // Filter for .html files only
+                const htmlFiles = files.filter(file => file.name.endsWith('.html'));
+
+                htmlFiles.forEach((file, index) => {
+                    const card = document.createElement('button');
+                    card.className = 'card';
+                    card.style.backgroundColor = colors[index % colors.length];
+                    
+                    // Clean up the name (remove .html and dashes)
+                    const cleanName = file.name.replace('.html', '').replace(/-/g, ' ');
+
+                    card.onclick = () => openGame(file.path);
+                    card.innerHTML = `
+                        <div class="card-overlay"></div>
+                        <div class="card-title">${cleanName}</div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                loader.innerText = "Error loading games. Check config.";
+                console.error(error);
+            }
+        }
+
+        function openGame(path) {
+            // Using the raw path for the iframe
+            frame.src = path;
             viewer.classList.add('active');
         }
 
         function closeGame() {
             viewer.classList.remove('active');
-            setTimeout(() => { frame.src = ""; }, 400); // Clear src after animation
+            setTimeout(() => { frame.src = ""; }, 400);
         }
+
+        fetchGames();
     </script>
 </body>
 </html>
